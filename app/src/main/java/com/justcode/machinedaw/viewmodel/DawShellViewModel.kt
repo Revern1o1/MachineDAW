@@ -178,6 +178,11 @@ class DawShellViewModel : ViewModel() {
         AudioEngineBridge.nativeNoteOff(tab.engineId, note)
     }
 
+    fun setParam(paramId: Int, value: Float) {
+        val tab = _state.value.selectedTab ?: return
+        AudioEngineBridge.nativeSetParam(tab.engineId, paramId, value)
+    }
+
     fun setMacro(index: Int, value: Float) {
         val tab = _state.value.selectedTab ?: return
         AudioEngineBridge.nativeSetMacro(tab.engineId, index, value)
