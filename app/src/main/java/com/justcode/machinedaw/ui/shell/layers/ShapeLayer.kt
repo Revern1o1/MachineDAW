@@ -51,7 +51,7 @@ fun ShapeLayer(
 
         if (defs.isEmpty()) {
             Text("No params for this machine type", style = MaterialTheme.typography.bodyMedium)
-            return
+            return@Column
         }
 
         val groups = defs.groupBy { it.group }
