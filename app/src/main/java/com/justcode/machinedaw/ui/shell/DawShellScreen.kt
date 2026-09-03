@@ -61,9 +61,11 @@ fun DawShellScreen(
                 MachineHeader(tab = tab, onLayerChange = viewModel::setLayer)
                 MachineContent(
                     tab = tab,
+                    onLayerChange = viewModel::setLayer,
                     onNoteOn = { viewModel.noteOn(it) },
                     onNoteOffAll = { for (n in 36..84) viewModel.noteOff(n) },
                     onMacro = viewModel::setMacro,
+                    onParam = viewModel::setParam,
                     modifier = Modifier.weight(1f),
                 )
             } else {
