@@ -227,10 +227,38 @@ fun Phase2TestScreen(modifier: Modifier = Modifier) {
             ) { Text("All Notes Off") }
 
             Text("Macros (Perform)", style = MaterialTheme.typography.titleMedium)
-            MacroSlider("Macro 0", macro0) { macro0 = it; AudioEngineBridge.nativeSetMacro(activeMachineId, 0, it) }
-            MacroSlider("Macro 1", macro1) { macro1 = it; AudioEngineBridge.nativeSetMacro(activeMachineId, 1, it) }
-            MacroSlider("Macro 2", macro2) { macro2 = it; AudioEngineBridge.nativeSetMacro(activeMachineId, 2, it) }
-            MacroSlider("Macro 3", macro3) { macro3 = it; AudioEngineBridge.nativeSetMacro(activeMachineId, 3, it) }
+            MacroSlider(
+                label = "Macro 0",
+                value = macro0,
+                onChange = {
+                    macro0 = it
+                    AudioEngineBridge.nativeSetMacro(activeMachineId, 0, it)
+                }
+            )
+            MacroSlider(
+                label = "Macro 1",
+                value = macro1,
+                onChange = {
+                    macro1 = it
+                    AudioEngineBridge.nativeSetMacro(activeMachineId, 1, it)
+                }
+            )
+            MacroSlider(
+                label = "Macro 2",
+                value = macro2,
+                onChange = {
+                    macro2 = it
+                    AudioEngineBridge.nativeSetMacro(activeMachineId, 2, it)
+                }
+            )
+            MacroSlider(
+                label = "Macro 3",
+                value = macro3,
+                onChange = {
+                    macro3 = it
+                    AudioEngineBridge.nativeSetMacro(activeMachineId, 3, it)
+                }
+            )
         }
 
         @Suppress("UNUSED_EXPRESSION")
