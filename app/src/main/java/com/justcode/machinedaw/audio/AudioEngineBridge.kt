@@ -10,21 +10,25 @@ object AudioEngineBridge {
         System.loadLibrary("machinedaw")
     }
 
+    // Lifecycle
     external fun nativeStart(): Boolean
     external fun nativeStop()
     external fun nativeIsRunning(): Boolean
 
+    // Rack
     external fun nativeAddMachine(typeIndex: Int): Int
     external fun nativeRemoveMachine(machineId: Int): Boolean
     external fun nativeMachineCount(): Int
     external fun nativeTypeCount(): Int
 
+    // Notes / params / macros
     external fun nativeNoteOn(machineId: Int, note: Int, velocity: Float)
     external fun nativeNoteOff(machineId: Int, note: Int)
     external fun nativeSetParam(machineId: Int, paramId: Int, value: Float)
     external fun nativeSetMacro(machineId: Int, macroIndex: Int, value: Float)
     external fun nativeSetTransportState(playing: Boolean)
 
+    // Milestone A
     external fun nativeSetMute(machineId: Int, muted: Boolean)
     external fun nativeSetBpm(bpm: Float)
     external fun nativeSetPatternStep(
@@ -37,8 +41,9 @@ object AudioEngineBridge {
     external fun nativeSetActivePattern(machineId: Int, bank: Int)
     external fun nativeGetCurrentStep(): Int
     external fun nativeGetBpm(): Float
-    external fun nativeGetBbt(): IntArray
+    external fun nativeGetBbt(): IntArray  // [bar, beat, tick]
 
+    // Snapshot
     external fun nativeGetMeters(): FloatArray
     external fun nativeIsPlaying(): Boolean
     external fun nativeGetSampleRate(): Int

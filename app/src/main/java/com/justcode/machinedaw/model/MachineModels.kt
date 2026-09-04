@@ -3,6 +3,7 @@ package com.justcode.machinedaw.model
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 
+/** Matches native MachineRegistry type indices. */
 object MachineTypeIndex {
     const val SINE_TEST = 0
     const val SWARM = 1
@@ -34,6 +35,7 @@ val AvailableMachineTypes = listOf(
     ),
 )
 
+/** Kit machine palette — see ui.theme.MachineColors.MachinePalette */
 val MachineColorPalette = com.justcode.machinedaw.ui.theme.MachineColors.MachinePalette
 
 enum class MachineLayer { Perform, Shape, Write }

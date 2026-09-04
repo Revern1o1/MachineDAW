@@ -16,13 +16,14 @@ data class ParamUiDef(
     val group: String = "Params",
 )
 
+/** Kotlin mirror of native ParamDef tables — until nativeGetParamDefs exists. */
 object MachineParamCatalog {
     private val sineTest = listOf(
         ParamUiDef(0, "Frequency", ParamKindUi.Continuous, 40f, 2000f, 440f, "Hz", "Oscillator"),
         ParamUiDef(1, "Amplitude", ParamKindUi.Continuous, 0f, 1f, 0.25f, "", "Oscillator"),
     )
 
-    private val subsynth = listOf(
+    private val swarm = listOf(
         ParamUiDef(0, "Waveform", ParamKindUi.Discrete, 0f, 1f, 0f, "", "Oscillator"),
         ParamUiDef(1, "Cutoff", ParamKindUi.Continuous, 100f, 8000f, 1200f, "Hz", "Filter"),
         ParamUiDef(2, "Resonance", ParamKindUi.Continuous, 0f, 1f, 0.2f, "", "Filter"),
@@ -35,13 +36,13 @@ object MachineParamCatalog {
 
     fun paramsFor(typeId: String): List<ParamUiDef> = when (typeId) {
         "sine_test" -> sineTest
-        "subsynth" -> subsynth
+        "swarm" -> swarm
         else -> emptyList()
     }
 
     fun macrosFor(typeId: String): List<String> = when (typeId) {
         "sine_test" -> listOf("Pitch", "Level", "Macro 2", "Macro 3")
-        "subsynth" -> listOf("Character", "Brightness", "Body", "Level")
+        "swarm" -> listOf("Character", "Brightness", "Body", "Level")
         else -> listOf("Macro 0", "Macro 1", "Macro 2", "Macro 3")
     }
 }
