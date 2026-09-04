@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,18 +32,27 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.justcode.machinedaw.model.MachineTab
+import com.justcode.machinedaw.ui.theme.MachineColors
 
+/**
+ * Write — pattern bank A–H + 16-step grid wired to native pattern clock.
+ * UI holds a local mirror of step on/off; engine is the canonical sequencer.
+ */
 @Composable
 fun WriteLayer(
     tab: MachineTab,
+    currentStep: Int,
+    isPlaying: Boolean,
+    onSetStep: (bank: Int, step: Int, active: Boolean) -> Unit,
+    onSelectBank: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val patterns = listOf("A", "B", "C", "D", "E", "F", "G", "H")
-    var activePattern by remember(tab.engineId) { mutableStateOf("A") }
-    val steps = remember(tab.engineId, activePattern) {
-        MutableList(16) { mutableStateOf(false) }
+    var activeBank by remember(tab.engineId) { mutableStateOf(0) }
+    // Local mirror only — engine owns the real pattern (no read-back yet)
+    val steps = remember(tab.engineId, activeBank) {
+        mutableStateListOf(*BooleanArray(16) { false }.toTypedArray())
     }
-    var recordArmed by remember(tab.engineId) { mutableStateOf(false) }
 
     Column(
         modifier = modifier.fillMaxSize().padding(16.dp),
@@ -50,64 +60,71 @@ fun WriteLayer(
     ) {
         Text("Write", style = MaterialTheme.typography.titleMedium)
         Text(
-            "Pattern bank + step grid (local) — engine clock in a later phase",
+            "16 steps · engine clock · C4 hits",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MachineColors.Ink2,
         )
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             modifier = Modifier.horizontalScroll(rememberScrollState()),
         ) {
-            patterns.forEach { letter ->
+            patterns.forEachIndexed { index, letter ->
                 FilterChip(
-                    selected = activePattern == letter,
-                    onClick = { activePattern = letter },
+                    selected = activeBank == index,
+                    onClick = {
+                        activeBank = index
+                        onSelectBank(index)
+                    },
                     label = { Text(letter) },
                     modifier = Modifier.semantics { contentDescription = "Pattern $letter" },
                 )
             }
         }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            FilterChip(
-                selected = recordArmed,
-                onClick = { recordArmed = !recordArmed },
-                label = { Text(if (recordArmed) "Rec armed" else "Rec") },
-            )
-            Text("Pattern $activePattern", style = MaterialTheme.typography.labelLarge)
-        }
+        Text(
+            "Pattern ${patterns[activeBank]}  ·  step ${currentStep + 1}/16",
+            style = MaterialTheme.typography.labelLarge,
+        )
 
-        Text("16 steps", style = MaterialTheme.typography.labelMedium)
         Row(
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            steps.forEachIndexed { index, state ->
-                var on by state
+            steps.forEachIndexed { index, on ->
+                val isPlayhead = isPlaying && currentStep == index
                 Box(
                     modifier = Modifier
-                        .size(28.dp)
-                        .clip(RoundedCornerShape(4.dp))
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(6.dp))
                         .background(
-                            if (on) tab.color
-                            else MaterialTheme.colorScheme.surfaceVariant,
+                            when {
+                                isPlayhead && on -> MachineColors.Play
+                                on -> tab.color
+                                isPlayhead -> MachineColors.Play.copy(alpha = 0.35f)
+                                else -> MachineColors.Surf2
+                            },
                         )
-                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
-                        .clickable { on = !on }
+                        .border(
+                            1.dp,
+                            if (isPlayhead) MachineColors.Play else MachineColors.Line,
+                            RoundedCornerShape(6.dp),
+                        )
+                        .clickable {
+                            val next = !on
+                            steps[index] = next
+                            onSetStep(activeBank, index, next)
+                        }
                         .semantics {
-                            contentDescription = "Step ${index + 1} ${if (on) "on" else "off"}"
+                            contentDescription =
+                                "Step ${index + 1} ${if (on) "on" else "off"}"
                         },
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         "${index + 1}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (on) MaterialTheme.colorScheme.onPrimary
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (on || isPlayhead) MachineColors.Ink else MachineColors.Ink2,
                     )
                 }
             }
@@ -115,9 +132,9 @@ fun WriteLayer(
 
         Spacer(Modifier.height(8.dp))
         Text(
-            "Piano roll / drum sequencer UI arrives with pattern-clock JNI",
+            "Press Play — armed steps fire C4 via the native pattern clock",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MachineColors.Ink2,
         )
     }
 }
