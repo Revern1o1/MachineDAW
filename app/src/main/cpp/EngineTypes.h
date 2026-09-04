@@ -2,6 +2,9 @@
 
 #include <cstdint>
 
+// ---------------------------------------------------------------------------
+// Capacity caps (SDD §7)
+// ---------------------------------------------------------------------------
 static constexpr int32_t kMaxMachines      = 14;
 static constexpr int32_t kMaxParams        = 32;
 static constexpr int32_t kMaxMacros        = 4;
@@ -9,25 +12,28 @@ static constexpr int32_t kMaxRoutesPerMacro = 4;
 static constexpr int32_t kMaxSampleSlots   = 8;
 static constexpr int32_t kMaxBulkParams    = 48;
 static constexpr int32_t kPatternSteps     = 16;
-static constexpr int32_t kPatternBanks     = 8;
-static constexpr int32_t kDefaultNote      = 60;
+static constexpr int32_t kPatternBanks     = 8;   // A–H
+static constexpr int32_t kDefaultNote      = 60;  // C4 for melodic step hits
 
+// ---------------------------------------------------------------------------
+// Message types (SDD §4.1)
+// ---------------------------------------------------------------------------
 enum class MessageType : uint8_t {
     NoteOn = 0,
     NoteOff,
     SetParam,
     SetMacro,
     SetMacroMapping,
-    SetTransportState,
+    SetTransportState,   // value > 0.5f = play; paramId: 1 = also reset playhead
     AddMachine,
     RemoveMachine,
     ReorderMachine,
     AdoptMachine,
     SetSampleSlot,
-    SetMute,
-    SetBpm,
-    SetPatternStep,
-    SetActivePattern,
+    SetMute,             // value > 0.5f = muted
+    SetBpm,              // value = bpm
+    SetPatternStep,      // paramId = (bank<<16)|(step<<8)|note ; value = velocity (0 = clear)
+    SetActivePattern,    // paramId = bank 0..7
 };
 
 struct EngineMessage {
@@ -37,6 +43,9 @@ struct EngineMessage {
     float       value;
 };
 
+// ---------------------------------------------------------------------------
+// Parameter definition
+// ---------------------------------------------------------------------------
 enum class ParamKind : uint8_t {
     Continuous = 0,
     Discrete,
@@ -88,6 +97,7 @@ struct MachineDefinition {
     uint8_t          sampleSlotCount;
 };
 
+// Per-machine pattern step (melodic v1: one note per step)
 struct PatternStep {
     bool  active = false;
     int32_t note = kDefaultNote;
@@ -97,13 +107,13 @@ struct PatternStep {
 struct EngineSnapshot {
     float   meters[kMaxMachines];
     int32_t machineCount;
-    int32_t currentStep;
+    int32_t currentStep;       // 0..15 within bar
     int64_t playheadSamples;
     bool    isPlaying;
     int32_t sampleRate;
     int32_t framesPerBurst;
     float   bpm;
-    int32_t bar;
-    int32_t beat;
-    int32_t tick;
+    int32_t bar;               // 0-based bar index
+    int32_t beat;              // 0..3 in 4/4
+    int32_t tick;              // coarse subdivision
 };
