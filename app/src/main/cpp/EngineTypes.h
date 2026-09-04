@@ -2,12 +2,15 @@
 
 #include <cstdint>
 
-static constexpr int32_t kMaxMachines     = 14;
-static constexpr int32_t kMaxParams       = 32;
-static constexpr int32_t kMaxMacros       = 4;
+static constexpr int32_t kMaxMachines      = 14;
+static constexpr int32_t kMaxParams        = 32;
+static constexpr int32_t kMaxMacros        = 4;
 static constexpr int32_t kMaxRoutesPerMacro = 4;
-static constexpr int32_t kMaxSampleSlots  = 8;
-static constexpr int32_t kMaxBulkParams   = 48;
+static constexpr int32_t kMaxSampleSlots   = 8;
+static constexpr int32_t kMaxBulkParams    = 48;
+static constexpr int32_t kPatternSteps     = 16;
+static constexpr int32_t kPatternBanks     = 8;
+static constexpr int32_t kDefaultNote      = 60;
 
 enum class MessageType : uint8_t {
     NoteOn = 0,
@@ -21,6 +24,10 @@ enum class MessageType : uint8_t {
     ReorderMachine,
     AdoptMachine,
     SetSampleSlot,
+    SetMute,
+    SetBpm,
+    SetPatternStep,
+    SetActivePattern,
 };
 
 struct EngineMessage {
@@ -48,7 +55,7 @@ struct ParamDef {
 enum class EditorLayoutHint : uint8_t {
     Generic = 0,
     SineTest,
-    Subsynth,
+    Swarm,
     BeatBox,
     Byrate
 };
@@ -81,6 +88,12 @@ struct MachineDefinition {
     uint8_t          sampleSlotCount;
 };
 
+struct PatternStep {
+    bool  active = false;
+    int32_t note = kDefaultNote;
+    float velocity = 1.0f;
+};
+
 struct EngineSnapshot {
     float   meters[kMaxMachines];
     int32_t machineCount;
@@ -89,4 +102,8 @@ struct EngineSnapshot {
     bool    isPlaying;
     int32_t sampleRate;
     int32_t framesPerBurst;
+    float   bpm;
+    int32_t bar;
+    int32_t beat;
+    int32_t tick;
 };
