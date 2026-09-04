@@ -8,20 +8,28 @@ import com.justcode.machinedaw.model.MachineTab
 @Composable
 fun MachineContent(
     tab: MachineTab,
+    currentStep: Int,
+    isPlaying: Boolean,
     onLayerChange: (MachineLayer) -> Unit,
     onNoteOn: (Int) -> Unit,
-    onNoteOffAll: () -> Unit,
+    onNoteOff: (Int) -> Unit,
     onMacro: (Int, Float) -> Unit,
     onParam: (Int, Float) -> Unit,
+    onSetStep: (bank: Int, step: Int, active: Boolean) -> Unit,
+    onSelectBank: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     MachineLayerHost(
         tab = tab,
+        currentStep = currentStep,
+        isPlaying = isPlaying,
         onLayerChange = onLayerChange,
         onNoteOn = onNoteOn,
-        onNoteOffAll = onNoteOffAll,
+        onNoteOff = onNoteOff,
         onMacro = onMacro,
         onParam = onParam,
+        onSetStep = onSetStep,
+        onSelectBank = onSelectBank,
         modifier = modifier,
     )
 }
