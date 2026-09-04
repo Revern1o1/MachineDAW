@@ -34,22 +34,8 @@ val AvailableMachineTypes = listOf(
     ),
 )
 
-val MachineColorPalette = listOf(
-    Color(0xFF7C4DFF),
-    Color(0xFF03DAC6),
-    Color(0xFFFF6E40),
-    Color(0xFF69F0AE),
-    Color(0xFFFFD740),
-    Color(0xFF40C4FF),
-    Color(0xFFFF4081),
-    Color(0xFFB388FF),
-    Color(0xFF64FFDA),
-    Color(0xFFFFAB40),
-    Color(0xFF80D8FF),
-    Color(0xFFEA80FC),
-    Color(0xFFA7FFEB),
-    Color(0xFFFFE57F),
-)
+/** Kit machine palette — see ui.theme.MachineColors.MachinePalette */
+val MachineColorPalette = com.justcode.machinedaw.ui.theme.MachineColors.MachinePalette
 
 enum class MachineLayer { Perform, Shape, Write }
 
