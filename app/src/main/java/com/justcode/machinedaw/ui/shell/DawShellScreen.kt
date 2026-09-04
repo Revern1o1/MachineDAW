@@ -61,14 +61,23 @@ fun DawShellScreen(
 
             val tab = state.selectedTab
             if (tab != null) {
-                MachineHeader(tab = tab, onLayerChange = viewModel::setLayer)
-                MachineContent(
+                MachineHeader(
                     tab = tab,
                     onLayerChange = viewModel::setLayer,
+                )
+                MachineContent(
+                    tab = tab,
+                    currentStep = state.transport.currentStep,
+                    isPlaying = state.transport.isPlaying,
+                    onLayerChange = viewModel::setLayer,
                     onNoteOn = { viewModel.noteOn(it) },
-                    onNoteOffAll = { for (n in 36..84) viewModel.noteOff(n) },
+                    onNoteOff = { viewModel.noteOff(it) },
                     onMacro = viewModel::setMacro,
                     onParam = viewModel::setParam,
+                    onSetStep = { bank, step, active ->
+                        viewModel.setPatternStep(bank, step, active)
+                    },
+                    onSelectBank = viewModel::setActivePattern,
                     modifier = Modifier.weight(1f),
                 )
             } else {
