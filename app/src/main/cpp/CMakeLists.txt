@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(machinedaw)
+project(machinedaw_native)
+
+find_package(oboe REQUIRED CONFIG)
 
 add_library(machinedaw SHARED
     jni_bridge.cpp
@@ -9,12 +11,16 @@ add_library(machinedaw SHARED
     SwarmMachine.cpp
 )
 
-find_package(oboe REQUIRED CONFIG)
+target_include_directories(machinedaw PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 target_link_libraries(machinedaw
     oboe::oboe
-    android
     log
+    android
 )
 
-target_include_directories(machinedaw PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_options(machinedaw PRIVATE -O3 -ffast-math)
+endif()
