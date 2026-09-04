@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 
 object MachineTypeIndex {
     const val SINE_TEST = 0
-    const val SUBSYNTH = 1
+    const val SWARM = 1
 }
 
 @Immutable
@@ -23,18 +23,17 @@ val AvailableMachineTypes = listOf(
         typeId = "sine_test",
         displayName = "Sine Test",
         category = "Synths",
-        description = "Minimal test tone (Phase 1)",
+        description = "Minimal test tone",
     ),
     MachineTypeInfo(
-        typeIndex = MachineTypeIndex.SUBSYNTH,
-        typeId = "subsynth",
-        displayName = "Subsynth",
+        typeIndex = MachineTypeIndex.SWARM,
+        typeId = "swarm",
+        displayName = "Swarm",
         category = "Synths",
         description = "Subtractive synth — osc, filter, ADSR",
     ),
 )
 
-/** Kit machine palette — see ui.theme.MachineColors.MachinePalette */
 val MachineColorPalette = com.justcode.machinedaw.ui.theme.MachineColors.MachinePalette
 
 enum class MachineLayer { Perform, Shape, Write }
@@ -56,6 +55,10 @@ data class TransportUiState(
     val isPlaying: Boolean = false,
     val bpm: Float = 120f,
     val sampleRate: Int = 0,
+    val bar: Int = 0,
+    val beat: Int = 0,
+    val tick: Int = 0,
+    val currentStep: Int = 0,
 )
 
 @Immutable
