@@ -1,6 +1,6 @@
 #include "MachineRegistry.h"
 #include "SineTestMachine.h"
-#include "SubsynthMachine.h"
+#include "SwarmMachine.h"
 
 #include <cstring>
 
@@ -55,10 +55,13 @@ int32_t MachineRegistry::indexForTypeId(const char* typeId) const {
 
 void registerBuiltinMachines() {
     auto& reg = MachineRegistry::instance();
+
     reg.registerType(0, &SineTestMachine::kDefinition, []() {
         return std::make_unique<SineTestMachine>();
     });
-    reg.registerType(1, &SubsynthMachine::kDefinition, []() {
-        return std::make_unique<SubsynthMachine>();
+
+    // Type 1 — Swarm (formerly Subsynth)
+    reg.registerType(1, &SwarmMachine::kDefinition, []() {
+        return std::make_unique<SwarmMachine>();
     });
 }
