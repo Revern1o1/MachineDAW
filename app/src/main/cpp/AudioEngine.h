@@ -36,11 +36,17 @@ public:
 private:
     void processMessages(int32_t maxMessages);
     void publishSnapshot(int32_t numFrames);
+    void advancePatternClock(int32_t numFrames);
+    void fireStepNotes(int32_t step);
 
     struct Slot {
         std::unique_ptr<Machine> machine;
         int32_t id = -1;
         std::atomic<bool> active{false};
+        std::atomic<bool> muted{false};
+        PatternStep patterns[kPatternBanks][kPatternSteps]{};
+        int32_t activeBank = 0;
+        int32_t lastFiredStep = -1;
     };
 
     Slot slots_[kMaxMachines];
@@ -57,9 +63,14 @@ private:
     std::atomic<bool> isPlaying_{false};
     std::atomic<bool> isRunning_{false};
 
-    int32_t sampleRate_ = 48000;
-    int32_t channelCount_ = 2;
+    int32_t sampleRate_     = 48000;
+    int32_t channelCount_   = 2;
     int32_t framesPerBurst_ = 0;
+
+    float   bpm_ = 120.0f;
+    int64_t playheadSamples_ = 0;
+    int32_t currentStep_ = 0;
+    int32_t lastGlobalStep_ = -1;
 
     static constexpr int32_t kMaxFramesPerCallback = 1024;
     float mixScratch_[kMaxFramesPerCallback * 2] = {};
