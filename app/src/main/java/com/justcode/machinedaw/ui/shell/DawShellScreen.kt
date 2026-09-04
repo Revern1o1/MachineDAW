@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -24,8 +25,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.justcode.machinedaw.model.DawShellUiState
+import com.justcode.machinedaw.ui.theme.MachineColors
 import com.justcode.machinedaw.viewmodel.DawShellViewModel
 
 @Composable
@@ -108,17 +111,30 @@ private fun EmptyWorkspace(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("No machines open", style = MaterialTheme.typography.headlineSmall)
             Text(
-                if (engineRunning) "Tap + in the tab strip to add a machine"
-                else "Start the engine, then add a machine",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                "MACHINE",
+                style = MaterialTheme.typography.displayLarge,
+                color = MachineColors.Ink,
+                letterSpacing = 4.sp,
             )
-            if (!engineRunning) {
-                TextButton(onClick = onStart) { Text("Start Engine") }
-            } else {
-                TextButton(onClick = onAdd) { Text("Add Machine") }
+            Text(
+                "Add a machine to start",
+                style = MaterialTheme.typography.titleMedium,
+                color = MachineColors.Ink,
+            )
+            Text(
+                "Synths, drums, pads — each opens as a tab with Perform, Shape and Write. Cap is 14.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MachineColors.Ink2,
+            )
+            TextButton(
+                onClick = if (engineRunning) onAdd else onStart,
+                colors = ButtonDefaults.textButtonColors(
+                    containerColor = MachineColors.Ink,
+                    contentColor = MachineColors.Bg,
+                ),
+            ) {
+                Text(if (engineRunning) "Browse machines" else "Start engine")
             }
         }
     }
