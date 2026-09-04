@@ -35,6 +35,7 @@ class DawShellViewModel : ViewModel() {
                     isEngineRunning = true,
                     isPlaying = true,
                     sampleRate = AudioEngineBridge.nativeGetSampleRate(),
+                    bpm = AudioEngineBridge.nativeGetBpm(),
                 )
             )
         }
@@ -59,26 +60,20 @@ class DawShellViewModel : ViewModel() {
     fun togglePlay() {
         val playing = !_state.value.transport.isPlaying
         AudioEngineBridge.nativeSetTransportState(playing)
-        _state.update {
-            it.copy(transport = it.transport.copy(isPlaying = playing))
-        }
+        _state.update { it.copy(transport = it.transport.copy(isPlaying = playing)) }
     }
 
     fun setBpm(bpm: Float) {
-        _state.update {
-            it.copy(transport = it.transport.copy(bpm = bpm.coerceIn(40f, 300f)))
-        }
+        val clamped = bpm.coerceIn(40f, 300f)
+        AudioEngineBridge.nativeSetBpm(clamped)
+        _state.update { it.copy(transport = it.transport.copy(bpm = clamped)) }
     }
 
     fun openMachinePicker() {
-        if (_state.value.canAddMachine) {
-            _state.update { it.copy(showMachinePicker = true) }
-        }
+        if (_state.value.canAddMachine) _state.update { it.copy(showMachinePicker = true) }
     }
 
-    fun dismissMachinePicker() {
-        _state.update { it.copy(showMachinePicker = false) }
-    }
+    fun dismissMachinePicker() { _state.update { it.copy(showMachinePicker = false) } }
 
     fun addMachine(type: MachineTypeInfo) {
         if (!_state.value.transport.isEngineRunning) startEngine()
@@ -101,16 +96,18 @@ class DawShellViewModel : ViewModel() {
     }
 
     fun selectTab(index: Int) {
-        if (index in _state.value.tabs.indices) {
+        if (index in _state.value.tabs.indices)
             _state.update { it.copy(selectedTabIndex = index, showTabSwitcher = false) }
-        }
     }
 
     fun toggleMute(index: Int) {
         _state.update { s ->
             if (index !in s.tabs.indices) return@update s
             val tabs = s.tabs.toMutableList()
-            tabs[index] = tabs[index].copy(isMuted = !tabs[index].isMuted)
+            val t = tabs[index]
+            val muted = !t.isMuted
+            tabs[index] = t.copy(isMuted = muted)
+            AudioEngineBridge.nativeSetMute(t.engineId, muted)
             s.copy(tabs = tabs)
         }
     }
@@ -147,10 +144,7 @@ class DawShellViewModel : ViewModel() {
             val tabs = s.tabs.toMutableList()
             val item = tabs.removeAt(from)
             tabs.add(to, item)
-            val selected = when (s.selectedTabIndex) {
-                from -> to
-                else -> s.selectedTabIndex
-            }
+            val selected = if (s.selectedTabIndex == from) to else s.selectedTabIndex
             s.copy(tabs = tabs, selectedTabIndex = selected)
         }
     }
@@ -188,6 +182,16 @@ class DawShellViewModel : ViewModel() {
         AudioEngineBridge.nativeSetMacro(tab.engineId, index, value)
     }
 
+    fun setPatternStep(bank: Int, step: Int, active: Boolean, note: Int = 60) {
+        val tab = _state.value.selectedTab ?: return
+        AudioEngineBridge.nativeSetPatternStep(tab.engineId, bank, step, note, if (active) 0.9f else 0f)
+    }
+
+    fun setActivePattern(bank: Int) {
+        val tab = _state.value.selectedTab ?: return
+        AudioEngineBridge.nativeSetActivePattern(tab.engineId, bank)
+    }
+
     fun machineTypes(): List<MachineTypeInfo> = AvailableMachineTypes
 
     private fun startMeterPolling() {
@@ -197,6 +201,9 @@ class DawShellViewModel : ViewModel() {
                 val meters = AudioEngineBridge.nativeGetMeters()
                 val playing = AudioEngineBridge.nativeIsPlaying()
                 val sr = AudioEngineBridge.nativeGetSampleRate()
+                val bpm = AudioEngineBridge.nativeGetBpm()
+                val step = AudioEngineBridge.nativeGetCurrentStep()
+                val bbt = AudioEngineBridge.nativeGetBbt()
                 _state.update {
                     it.copy(
                         meters = meters,
@@ -204,10 +211,15 @@ class DawShellViewModel : ViewModel() {
                             isPlaying = playing,
                             sampleRate = sr,
                             isEngineRunning = AudioEngineBridge.nativeIsRunning(),
+                            bpm = bpm,
+                            currentStep = step,
+                            bar = bbt.getOrElse(0) { 0 },
+                            beat = bbt.getOrElse(1) { 0 },
+                            tick = bbt.getOrElse(2) { 0 },
                         )
                     )
                 }
-                delay(50)
+                delay(40)
             }
         }
     }
