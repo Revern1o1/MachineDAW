@@ -12,8 +12,8 @@ android {
         applicationId = "com.justcode.machinedaw"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.7.0-milestone-b"
+        versionCode = 8
+        versionName = "0.7.1-milestone-b"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -84,7 +84,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 
-    // Oboe (prefab)
     implementation("com.google.oboe:oboe:1.9.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
