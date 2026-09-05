@@ -4,9 +4,9 @@ Native Android DAW inspired by Caustic 3 / reFX Nexus machine model.
 Architecture follows the SDD (native engine owns canonical audio/project state;
 Compose is a reactive view).
 
-## Current status: **Milestone A complete**
+## Current status: **Milestone B in progress**
 
-Version `0.6.0-milestone-a`.
+Version `0.7.0-milestone-b`.
 
 | Layer | Status |
 |-------|--------|
@@ -20,6 +20,10 @@ Version `0.6.0-milestone-a`.
 | **Mute via mixer gain path** | ✅ |
 | **BBT + current step** in transport / Write playhead | ✅ |
 | **Melodic keyboard** press/release → noteOn/noteOff | ✅ |
+| **Swarm factory presets** (8) + header ◀ ▶ | ✅ |
+| **Preset browser sheet** (Factory list) | ✅ |
+| Native bulk PresetStore path | ⏳ sequential SetParam for now |
+| Macro mapping popover (kit 15) | ⏳ |
 
 ### Real-time rules (enforced)
 
@@ -41,15 +45,26 @@ You can also trigger a build manually: **Actions → Build Debug APK → Run wor
 
 ### How to verify (device)
 
-1. Start engine → **+ Swarm**.
+1. Start engine → **+ Swarm** (loads **Init** preset).
 2. **Perform**: hold keyboard keys — notes gate on press/release.
-3. **Write**: arm steps on the 16-step grid → Play — steps fire C4 on the native clock; playhead advances.
-4. **Mute** a tab — mixer gain path silences that machine; meter dims.
-5. Transport shows BPM + BBT (`bar:beat:tick`).
+3. Header preset: tap **◀ / ▶** to cycle Soft Pad, Pluck, Bass, Bright Lead, …
+4. Tap the preset **name** → Factory browser sheet → pick Glass / Warm Keys / etc.
+5. **Write**: arm steps → Play — playhead advances; steps fire.
+6. **Mute** a tab — mixer gain path silences that machine.
 
-### Next: Milestone B — Presets
+### Swarm factory presets
 
-PresetStore + bulk load path, header preset browser sheet, Swarm factory presets, macro mapping.
+Init · Soft Pad · Pluck · Bass · Bright Lead · Swarm Drift · Glass · Warm Keys
+
+### Piano roll
+
+Full melodic **piano roll** is **Milestone E** (kit 04). Write today is the interim 16-step melodic grid.
+
+### Next
+
+- Macro mapping popover (kit 15)
+- Native bulk param load (SDD §4.1)
+- Milestone C — BeatBox
 
 ### Requirements
 
@@ -58,4 +73,4 @@ PresetStore + bulk load path, header preset browser sheet, Swarm factory presets
 - Oboe via prefab
 - Kotlin 2.0 / Compose BOM 2024.10.01
 
-See `docs/ROADMAP.md` for the full plan. Visual source of truth: `docs/ui-kit/` (when present).
+See `docs/ROADMAP.md` for the full plan. Visual source of truth: `docs/ui-kit/`.

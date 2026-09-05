@@ -12,8 +12,8 @@ android {
         applicationId = "com.justcode.machinedaw"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.6.0-milestone-a"
+        versionCode = 7
+        versionName = "0.7.0-milestone-b"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

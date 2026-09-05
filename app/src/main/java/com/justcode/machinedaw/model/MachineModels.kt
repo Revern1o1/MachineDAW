@@ -49,6 +49,9 @@ data class MachineTab(
     val color: Color,
     val isMuted: Boolean = false,
     val activeLayer: MachineLayer = MachineLayer.Perform,
+    /** Current preset id in PresetLibrary (factory or later user). */
+    val presetId: String? = null,
+    val presetName: String = "Default",
 )
 
 @Immutable
@@ -70,6 +73,7 @@ data class DawShellUiState(
     val selectedTabIndex: Int = -1,
     val showMachinePicker: Boolean = false,
     val showTabSwitcher: Boolean = false,
+    val showPresetBrowser: Boolean = false,
     val meters: FloatArray = FloatArray(14),
 ) {
     val selectedTab: MachineTab?

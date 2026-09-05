@@ -46,11 +46,14 @@ Version `0.6.0-milestone-a`. Installable debug APK via GitHub Actions.
 
 ## Product roadmap (next)
 
-### Milestone B — Preset-centric machine
-- PresetStore + bulk load path (SDD §4.1 / SSD §9)
-- Header preset browser sheet (kit 09)
-- Swarm factory presets
-- Macro mapping popover (kit 15)
+### Milestone B — Preset-centric machine (in progress)
+- [x] Swarm factory presets (8) + SineTest (3)
+- [x] Header preset ◀ name ▶ cycle
+- [x] Preset browser sheet — Factory list (kit 09 spirit)
+- [x] Apply preset → engine via SetParam vector
+- [ ] Native PresetStore + bulk load path (SDD §4.1)
+- [ ] Macro mapping popover (kit 15)
+- [ ] User presets persistence
 
 ### Milestone C — BeatBox
 - BeatBox machine + SampleStore
