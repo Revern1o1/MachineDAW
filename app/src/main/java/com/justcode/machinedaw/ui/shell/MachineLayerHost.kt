@@ -22,6 +22,8 @@ fun MachineLayerHost(
     onNoteOff: (Int) -> Unit,
     onMacro: (Int, Float) -> Unit,
     onParam: (Int, Float) -> Unit,
+    onMapParamToMacro: (paramId: Int, macroIndex: Int) -> Unit,
+    onClearParamMacro: (paramId: Int) -> Unit,
     onSetStep: (bank: Int, step: Int, active: Boolean) -> Unit,
     onSelectBank: (Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -32,25 +34,43 @@ fun MachineLayerHost(
 
     LaunchedEffect(tab.activeLayer) {
         val target = pages.indexOf(tab.activeLayer).coerceAtLeast(0)
-        if (pagerState.currentPage != target) pagerState.animateScrollToPage(target)
+        if (pagerState.currentPage != target) {
+            pagerState.animateScrollToPage(target)
+        }
     }
+
     LaunchedEffect(pagerState.currentPage) {
         val layer = pages[pagerState.currentPage]
         if (layer != tab.activeLayer) onLayerChange(layer)
     }
 
-    HorizontalPager(state = pagerState, modifier = modifier.fillMaxSize(), key = { pages[it] }) { page ->
+    HorizontalPager(
+        state = pagerState,
+        modifier = modifier.fillMaxSize(),
+        key = { pages[it] },
+    ) { page ->
         when (pages[page]) {
             MachineLayer.Perform -> PerformLayer(
-                tab = tab, onNoteOn = onNoteOn, onNoteOff = onNoteOff, onMacro = onMacro,
+                tab = tab,
+                onNoteOn = onNoteOn,
+                onNoteOff = onNoteOff,
+                onMacro = onMacro,
                 modifier = Modifier.fillMaxSize(),
             )
             MachineLayer.Shape -> ShapeLayer(
-                tab = tab, onParam = onParam, modifier = Modifier.fillMaxSize(),
+                tab = tab,
+                macroRoutes = tab.macroRoutes,
+                onParam = onParam,
+                onMapParamToMacro = onMapParamToMacro,
+                onClearParamMacro = onClearParamMacro,
+                modifier = Modifier.fillMaxSize(),
             )
             MachineLayer.Write -> WriteLayer(
-                tab = tab, currentStep = currentStep, isPlaying = isPlaying,
-                onSetStep = onSetStep, onSelectBank = onSelectBank,
+                tab = tab,
+                currentStep = currentStep,
+                isPlaying = isPlaying,
+                onSetStep = onSetStep,
+                onSelectBank = onSelectBank,
                 modifier = Modifier.fillMaxSize(),
             )
         }
