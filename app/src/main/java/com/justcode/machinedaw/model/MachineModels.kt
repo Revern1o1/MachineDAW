@@ -52,6 +52,8 @@ data class MachineTab(
     /** Current preset id in PresetLibrary (factory or later user). */
     val presetId: String? = null,
     val presetName: String = "Default",
+    /** Shape param → Perform macro routes (kit 15). */
+    val macroRoutes: List<ParamMacroRoute> = emptyList(),
 )
 
 @Immutable
