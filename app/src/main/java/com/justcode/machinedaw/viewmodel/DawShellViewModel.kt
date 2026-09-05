@@ -5,11 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.justcode.machinedaw.audio.AudioEngineBridge
 import com.justcode.machinedaw.model.AvailableMachineTypes
 import com.justcode.machinedaw.model.DawShellUiState
+import com.justcode.machinedaw.model.DefaultMacroMaps
 import com.justcode.machinedaw.model.MachineColorPalette
 import com.justcode.machinedaw.model.MachineLayer
+import com.justcode.machinedaw.model.MachineParamCatalog
 import com.justcode.machinedaw.model.MachinePreset
 import com.justcode.machinedaw.model.MachineTab
 import com.justcode.machinedaw.model.MachineTypeInfo
+import com.justcode.machinedaw.model.ParamMacroRoute
 import com.justcode.machinedaw.model.PresetLibrary
 import com.justcode.machinedaw.model.TransportUiState
 import kotlinx.coroutines.Job
@@ -21,10 +24,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-/**
- * Shell state + Milestone A transport/pattern wiring.
- * Native engine owns clock, mute, steps; UI is a reactive view.
- */
 class DawShellViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(DawShellUiState())
@@ -66,39 +65,28 @@ class DawShellViewModel : ViewModel() {
     fun togglePlay() {
         val playing = !_state.value.transport.isPlaying
         AudioEngineBridge.nativeSetTransportState(playing)
-        _state.update {
-            it.copy(transport = it.transport.copy(isPlaying = playing))
-        }
+        _state.update { it.copy(transport = it.transport.copy(isPlaying = playing)) }
     }
 
     fun setBpm(bpm: Float) {
         val clamped = bpm.coerceIn(40f, 300f)
         AudioEngineBridge.nativeSetBpm(clamped)
-        _state.update {
-            it.copy(transport = it.transport.copy(bpm = clamped))
-        }
+        _state.update { it.copy(transport = it.transport.copy(bpm = clamped)) }
     }
 
     fun openMachinePicker() {
-        if (_state.value.canAddMachine) {
-            _state.update { it.copy(showMachinePicker = true) }
-        }
+        if (_state.value.canAddMachine) _state.update { it.copy(showMachinePicker = true) }
     }
 
-    fun dismissMachinePicker() {
-        _state.update { it.copy(showMachinePicker = false) }
-    }
+    fun dismissMachinePicker() { _state.update { it.copy(showMachinePicker = false) } }
 
     fun addMachine(type: MachineTypeInfo) {
         if (!_state.value.transport.isEngineRunning) startEngine()
         if (!_state.value.canAddMachine) return
-
         val id = AudioEngineBridge.nativeAddMachine(type.typeIndex)
         if (id < 0) return
-
         val color = MachineColorPalette[nextColorIndex % MachineColorPalette.size]
         nextColorIndex++
-
         val defaultPreset = PresetLibrary.defaultFor(type.typeId)
         val tab = MachineTab(
             engineId = id,
@@ -108,25 +96,20 @@ class DawShellViewModel : ViewModel() {
             color = color,
             presetId = defaultPreset?.id,
             presetName = defaultPreset?.name ?: "Default",
+            macroRoutes = DefaultMacroMaps.forType(type.typeId),
         )
         _state.update {
             val tabs = it.tabs + tab
             it.copy(tabs = tabs, selectedTabIndex = tabs.lastIndex, showMachinePicker = false)
         }
-        if (defaultPreset != null) {
-            applyPresetParams(id, defaultPreset)
-        }
+        if (defaultPreset != null) applyPresetParams(id, defaultPreset)
     }
 
     fun openPresetBrowser() {
-        if (_state.value.selectedTab != null) {
-            _state.update { it.copy(showPresetBrowser = true) }
-        }
+        if (_state.value.selectedTab != null) _state.update { it.copy(showPresetBrowser = true) }
     }
 
-    fun dismissPresetBrowser() {
-        _state.update { it.copy(showPresetBrowser = false) }
-    }
+    fun dismissPresetBrowser() { _state.update { it.copy(showPresetBrowser = false) } }
 
     fun loadPreset(preset: MachinePreset) {
         val tab = _state.value.selectedTab ?: return
@@ -165,9 +148,8 @@ class DawShellViewModel : ViewModel() {
     }
 
     fun selectTab(index: Int) {
-        if (index in _state.value.tabs.indices) {
+        if (index in _state.value.tabs.indices)
             _state.update { it.copy(selectedTabIndex = index, showTabSwitcher = false) }
-        }
     }
 
     fun toggleMute(index: Int) {
@@ -249,7 +231,43 @@ class DawShellViewModel : ViewModel() {
 
     fun setMacro(index: Int, value: Float) {
         val tab = _state.value.selectedTab ?: return
-        AudioEngineBridge.nativeSetMacro(tab.engineId, index, value)
+        val v = value.coerceIn(0f, 1f)
+        AudioEngineBridge.nativeSetMacro(tab.engineId, index, v)
+        tab.macroRoutes.filter { it.macroIndex == index }.forEach { route ->
+            val paramVal = route.rangeMin + v * (route.rangeMax - route.rangeMin)
+            AudioEngineBridge.nativeSetParam(tab.engineId, route.paramId, paramVal)
+        }
+    }
+
+    fun mapParamToMacro(paramId: Int, macroIndex: Int) {
+        val tab = _state.value.selectedTab ?: return
+        val def = MachineParamCatalog.paramsFor(tab.typeId).find { it.id == paramId } ?: return
+        val route = ParamMacroRoute(
+            paramId = paramId,
+            macroIndex = macroIndex.coerceIn(0, 3),
+            rangeMin = def.min,
+            rangeMax = def.max,
+        )
+        _state.update { s ->
+            val idx = s.selectedTabIndex
+            if (idx !in s.tabs.indices) return@update s
+            val tabs = s.tabs.toMutableList()
+            val t = tabs[idx]
+            val routes = t.macroRoutes.filterNot { it.paramId == paramId } + route
+            tabs[idx] = t.copy(macroRoutes = routes)
+            s.copy(tabs = tabs)
+        }
+    }
+
+    fun clearParamMacro(paramId: Int) {
+        _state.update { s ->
+            val idx = s.selectedTabIndex
+            if (idx !in s.tabs.indices) return@update s
+            val tabs = s.tabs.toMutableList()
+            val t = tabs[idx]
+            tabs[idx] = t.copy(macroRoutes = t.macroRoutes.filterNot { it.paramId == paramId })
+            s.copy(tabs = tabs)
+        }
     }
 
     fun setPatternStep(bank: Int, step: Int, active: Boolean, note: Int = 60) {
