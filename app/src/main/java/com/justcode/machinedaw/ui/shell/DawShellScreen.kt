@@ -77,6 +77,8 @@ fun DawShellScreen(
                     onNoteOff = { viewModel.noteOff(it) },
                     onMacro = viewModel::setMacro,
                     onParam = viewModel::setParam,
+                    onMapParamToMacro = viewModel::mapParamToMacro,
+                    onClearParamMacro = viewModel::clearParamMacro,
                     onSetStep = { bank, step, active ->
                         viewModel.setPatternStep(bank, step, active)
                     },
