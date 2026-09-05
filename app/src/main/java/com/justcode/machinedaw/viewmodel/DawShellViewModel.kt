@@ -7,8 +7,10 @@ import com.justcode.machinedaw.model.AvailableMachineTypes
 import com.justcode.machinedaw.model.DawShellUiState
 import com.justcode.machinedaw.model.MachineColorPalette
 import com.justcode.machinedaw.model.MachineLayer
+import com.justcode.machinedaw.model.MachinePreset
 import com.justcode.machinedaw.model.MachineTab
 import com.justcode.machinedaw.model.MachineTypeInfo
+import com.justcode.machinedaw.model.PresetLibrary
 import com.justcode.machinedaw.model.TransportUiState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -19,6 +21,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+/**
+ * Shell state + Milestone A transport/pattern wiring.
+ * Native engine owns clock, mute, steps; UI is a reactive view.
+ */
 class DawShellViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(DawShellUiState())
@@ -60,44 +66,108 @@ class DawShellViewModel : ViewModel() {
     fun togglePlay() {
         val playing = !_state.value.transport.isPlaying
         AudioEngineBridge.nativeSetTransportState(playing)
-        _state.update { it.copy(transport = it.transport.copy(isPlaying = playing)) }
+        _state.update {
+            it.copy(transport = it.transport.copy(isPlaying = playing))
+        }
     }
 
     fun setBpm(bpm: Float) {
         val clamped = bpm.coerceIn(40f, 300f)
         AudioEngineBridge.nativeSetBpm(clamped)
-        _state.update { it.copy(transport = it.transport.copy(bpm = clamped)) }
+        _state.update {
+            it.copy(transport = it.transport.copy(bpm = clamped))
+        }
     }
 
     fun openMachinePicker() {
-        if (_state.value.canAddMachine) _state.update { it.copy(showMachinePicker = true) }
+        if (_state.value.canAddMachine) {
+            _state.update { it.copy(showMachinePicker = true) }
+        }
     }
 
-    fun dismissMachinePicker() { _state.update { it.copy(showMachinePicker = false) } }
+    fun dismissMachinePicker() {
+        _state.update { it.copy(showMachinePicker = false) }
+    }
 
     fun addMachine(type: MachineTypeInfo) {
         if (!_state.value.transport.isEngineRunning) startEngine()
         if (!_state.value.canAddMachine) return
+
         val id = AudioEngineBridge.nativeAddMachine(type.typeIndex)
         if (id < 0) return
+
         val color = MachineColorPalette[nextColorIndex % MachineColorPalette.size]
         nextColorIndex++
+
+        val defaultPreset = PresetLibrary.defaultFor(type.typeId)
         val tab = MachineTab(
             engineId = id,
             typeIndex = type.typeIndex,
             typeId = type.typeId,
             displayName = type.displayName,
             color = color,
+            presetId = defaultPreset?.id,
+            presetName = defaultPreset?.name ?: "Default",
         )
         _state.update {
             val tabs = it.tabs + tab
             it.copy(tabs = tabs, selectedTabIndex = tabs.lastIndex, showMachinePicker = false)
         }
+        if (defaultPreset != null) {
+            applyPresetParams(id, defaultPreset)
+        }
+    }
+
+    fun openPresetBrowser() {
+        if (_state.value.selectedTab != null) {
+            _state.update { it.copy(showPresetBrowser = true) }
+        }
+    }
+
+    fun dismissPresetBrowser() {
+        _state.update { it.copy(showPresetBrowser = false) }
+    }
+
+    fun loadPreset(preset: MachinePreset) {
+        val tab = _state.value.selectedTab ?: return
+        if (preset.typeId != tab.typeId) return
+        applyPresetParams(tab.engineId, preset)
+        _state.update { s ->
+            val idx = s.selectedTabIndex
+            if (idx !in s.tabs.indices) return@update s
+            val tabs = s.tabs.toMutableList()
+            tabs[idx] = tabs[idx].copy(presetId = preset.id, presetName = preset.name)
+            s.copy(tabs = tabs, showPresetBrowser = false)
+        }
+    }
+
+    fun cyclePresetNext() {
+        val tab = _state.value.selectedTab ?: return
+        val next = PresetLibrary.cycleNext(tab.typeId, tab.presetId) ?: return
+        loadPreset(next)
+    }
+
+    fun cyclePresetPrev() {
+        val tab = _state.value.selectedTab ?: return
+        val prev = PresetLibrary.cyclePrev(tab.typeId, tab.presetId) ?: return
+        loadPreset(prev)
+    }
+
+    fun presetsForSelected(): List<MachinePreset> {
+        val typeId = _state.value.selectedTab?.typeId ?: return emptyList()
+        return PresetLibrary.factoryFor(typeId)
+    }
+
+    private fun applyPresetParams(machineId: Int, preset: MachinePreset) {
+        preset.params.forEachIndexed { paramId, value ->
+            AudioEngineBridge.nativeSetParam(machineId, paramId, value)
+        }
     }
 
     fun selectTab(index: Int) {
-        if (index in _state.value.tabs.indices)
+        if (index in _state.value.tabs.indices) {
             _state.update { it.copy(selectedTabIndex = index, showTabSwitcher = false) }
+        }
     }
 
     fun toggleMute(index: Int) {
@@ -184,7 +254,9 @@ class DawShellViewModel : ViewModel() {
 
     fun setPatternStep(bank: Int, step: Int, active: Boolean, note: Int = 60) {
         val tab = _state.value.selectedTab ?: return
-        AudioEngineBridge.nativeSetPatternStep(tab.engineId, bank, step, note, if (active) 0.9f else 0f)
+        AudioEngineBridge.nativeSetPatternStep(
+            tab.engineId, bank, step, note, if (active) 0.9f else 0f,
+        )
     }
 
     fun setActivePattern(bank: Int) {
