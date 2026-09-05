@@ -64,6 +64,9 @@ fun DawShellScreen(
                 MachineHeader(
                     tab = tab,
                     onLayerChange = viewModel::setLayer,
+                    onPresetPrev = viewModel::cyclePresetPrev,
+                    onPresetNext = viewModel::cyclePresetNext,
+                    onOpenPresetBrowser = viewModel::openPresetBrowser,
                 )
                 MachineContent(
                     tab = tab,
@@ -96,6 +99,20 @@ fun DawShellScreen(
                 onSelect = viewModel::addMachine,
                 onDismiss = viewModel::dismissMachinePicker,
             )
+        }
+
+        if (state.showPresetBrowser) {
+            val selected = state.selectedTab
+            if (selected != null) {
+                PresetBrowserSheet(
+                    machineName = selected.displayName,
+                    machineColor = selected.color,
+                    currentPresetId = selected.presetId,
+                    presets = viewModel.presetsForSelected(),
+                    onSelect = viewModel::loadPreset,
+                    onDismiss = viewModel::dismissPresetBrowser,
+                )
+            }
         }
 
         if (state.showTabSwitcher) {
