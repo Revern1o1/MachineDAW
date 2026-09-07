@@ -9,6 +9,10 @@
 #include <atomic>
 #include <memory>
 
+/**
+ * Real-time audio engine (SDD §3, §6) — Milestone A:
+ * pattern clock, mute gains, step write, playhead snapshot.
+ */
 class AudioEngine : public oboe::AudioStreamDataCallback,
                     public oboe::AudioStreamErrorCallback {
 public:
@@ -20,6 +24,7 @@ public:
     bool isRunning() const;
 
     bool enqueueMessage(const EngineMessage& msg);
+    bool enqueueBulk(const BulkParamMessage& msg);
     EngineSnapshot getSnapshot() const;
 
     int32_t addMachine(int32_t typeIndex);
@@ -35,6 +40,7 @@ public:
 
 private:
     void processMessages(int32_t maxMessages);
+    void processBulkMessages(int32_t maxMessages);
     void publishSnapshot(int32_t numFrames);
     void advancePatternClock(int32_t numFrames);
     void fireStepNotes(int32_t step);
@@ -44,6 +50,8 @@ private:
         int32_t id = -1;
         std::atomic<bool> active{false};
         std::atomic<bool> muted{false};
+        // Patterns: bank × lane × step (lane 0 = melodic; 0..7 = drum pads)
+        // Written only via message queue on the audio thread.
         PatternStep patterns[kPatternBanks][kMaxSampleSlots][kPatternSteps]{};
         int32_t activeBank = 0;
         int32_t lastFiredStep = -1;
@@ -54,6 +62,8 @@ private:
 
     std::shared_ptr<oboe::AudioStream> stream_;
     SpscRingBuffer<EngineMessage, 256> messageQueue_;
+    // Fewer, larger messages — preset loads only (SDD §4.1)
+    SpscRingBuffer<BulkParamMessage, 16> bulkQueue_;
 
     EngineSnapshot snapshots_[2]{};
     std::atomic<int> publishedIdx_{0};

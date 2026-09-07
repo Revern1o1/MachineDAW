@@ -34,6 +34,7 @@ enum class MessageType : uint8_t {
     SetBpm,              // value = bpm
     SetPatternStep,      // paramId = (bank<<16)|(step<<8)|note ; value = velocity (0 = clear)
     SetActivePattern,    // paramId = bank 0..7
+    LoadPresetBulk,      // routed via BulkParamMessage ring, not EngineMessage
 };
 
 struct EngineMessage {
@@ -41,6 +42,17 @@ struct EngineMessage {
     int32_t     machineId;
     int32_t     paramId;
     float       value;
+};
+
+/** Atomic multi-param apply for preset loads (SDD §4.1). Fixed POD, no heap. */
+struct BulkParamMessage {
+    MessageType type = MessageType::LoadPresetBulk;
+    int32_t     machineId = -1;
+    uint8_t     count = 0;  // <= kMaxBulkParams
+    struct {
+        uint16_t paramId;
+        float    value;
+    } params[kMaxBulkParams]{};
 };
 
 // ---------------------------------------------------------------------------
