@@ -44,7 +44,7 @@ private:
         int32_t id = -1;
         std::atomic<bool> active{false};
         std::atomic<bool> muted{false};
-        PatternStep patterns[kPatternBanks][kPatternSteps]{};
+        PatternStep patterns[kPatternBanks][kMaxSampleSlots][kPatternSteps]{};
         int32_t activeBank = 0;
         int32_t lastFiredStep = -1;
     };
