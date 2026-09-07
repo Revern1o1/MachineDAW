@@ -9,6 +9,7 @@ add_library(machinedaw SHARED
     MachineRegistry.cpp
     SineTestMachine.cpp
     SwarmMachine.cpp
+    BeatBoxMachine.cpp
 )
 
 target_include_directories(machinedaw PRIVATE
