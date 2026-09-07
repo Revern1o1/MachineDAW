@@ -1,6 +1,7 @@
 #include "MachineRegistry.h"
 #include "SineTestMachine.h"
 #include "SwarmMachine.h"
+#include "BeatBoxMachine.h"
 
 #include <cstring>
 
@@ -60,8 +61,11 @@ void registerBuiltinMachines() {
         return std::make_unique<SineTestMachine>();
     });
 
-    // Type 1 — Swarm (formerly Subsynth)
     reg.registerType(1, &SwarmMachine::kDefinition, []() {
         return std::make_unique<SwarmMachine>();
+    });
+
+    reg.registerType(2, &BeatBoxMachine::kDefinition, []() {
+        return std::make_unique<BeatBoxMachine>();
     });
 }
