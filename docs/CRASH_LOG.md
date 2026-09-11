@@ -23,7 +23,7 @@ Format for new entries:
 - **Where**: repo root / `gradle/wrapper/`
 - **Symptom**: Cannot run `./gradlew` or `gradlew.bat`; `gradle-wrapper.jar` absent. CI worked because Actions used system Gradle via `gradle/actions/setup-gradle` with an explicit version.
 - **Root cause**: Wrapper scripts and jar were never committed (only `gradle-wrapper.properties` existed).
-- **Fix / workaround**: Generated Gradle 8.9 wrapper (`gradlew`, `gradlew.bat`). Jar restored via `scripts/ensure-wrapper.sh` from committed `.b64` or network. CI workflow updated to call `./gradlew assembleDebug`.
+- **Fix / workaround**: Added `gradlew`, `gradlew.bat`, and `scripts/ensure-wrapper.sh` which downloads the official Gradle 8.9 `gradle-wrapper.jar` from `github.com/gradle/gradle` when missing. CI runs ensure-wrapper then `./gradlew assembleDebug`.
 - **Status**: fixed
 
 ## 2026-09-11 — BeatBoxMachine noise RNG produced poor / non-deterministic noise
