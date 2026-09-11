@@ -20,8 +20,6 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.9"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -34,8 +32,13 @@ jobs:
       - name: Create local.properties
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
+      - name: Ensure Gradle wrapper jar
+        run: |
+          chmod +x ./scripts/ensure-wrapper.sh ./gradlew
+          ./scripts/ensure-wrapper.sh
+
       - name: Build debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
