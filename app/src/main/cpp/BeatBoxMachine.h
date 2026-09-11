@@ -34,7 +34,7 @@ private:
         float env = 0.0f;
         float phase = 0.0f;
         float phaseInc = 0.0f;
-        float noiseState = 0.0f;
+        uint32_t noiseState = 0;
         float age = 0.0f;
     };
 
