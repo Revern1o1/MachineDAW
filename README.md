@@ -35,6 +35,24 @@ On the audio callback:
 
 `Slot.active` / `Slot.muted` are `std::atomic<bool>` with release/acquire ordering.
 
+### Local build (Android SDK required)
+
+```bash
+# First time only: restore gradle-wrapper.jar if missing
+chmod +x ./scripts/ensure-wrapper.sh ./gradlew
+./scripts/ensure-wrapper.sh
+
+# Linux / macOS
+./gradlew assembleDebug
+
+# Windows (after ensure-wrapper; Git Bash or WSL recommended for the script)
+gradlew.bat assembleDebug
+```
+
+APK output: `app/build/outputs/apk/debug/app-debug.apk`.
+
+See [docs/CRASH_LOG.md](docs/CRASH_LOG.md) for known issues and fixes during development.
+
 ### How to get the APK (no Android Studio required)
 
 1. Open **Actions** on this repo → **Build Debug APK** → latest successful run.
