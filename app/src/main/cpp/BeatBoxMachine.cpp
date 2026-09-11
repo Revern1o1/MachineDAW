@@ -87,7 +87,7 @@ void BeatBoxMachine::triggerPad(int32_t pad, float velocity) {
     v.env = 1.0f;
     v.phase = 0.0f;
     v.age = 0.0f;
-    v.noiseState = 0.5f;
+    v.noiseState = 22222u + static_cast<uint32_t>(pad) * 0x9E3779B1u;
     float hz = 60.0f;
     switch (pad) {
         case 0: hz = 55.0f + punch_ * 40.0f; break;
@@ -123,8 +123,8 @@ float BeatBoxMachine::renderVoice(Voice& v) {
     v.env -= envRate;
     v.age += 1.0f / sr;
     if (v.env <= 0.0f) { v.active = false; v.env = 0.0f; return 0.0f; }
-    v.noiseState = v.noiseState * 1103515245.0f + 12345.0f;
-    float noise = std::fmod(v.noiseState, 1.0f) * 2.0f - 1.0f;
+    v.noiseState = v.noiseState * 1103515245u + 12345u;
+    float noise = (static_cast<float>(v.noiseState) / 4294967296.0f) * 2.0f - 1.0f;
     float tone = std::sin(2.0f * static_cast<float>(M_PI) * v.phase);
     v.phase += v.phaseInc;
     if (v.phase >= 1.0f) v.phase -= 1.0f;
