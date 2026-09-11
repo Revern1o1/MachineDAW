@@ -102,13 +102,13 @@ fun TransportBar(
         Text("BPM", style = MaterialTheme.typography.labelSmall, color = MachineColors.Ink2)
 
         Text(
-            text = "04:02:768",
+            text = String.format("%02d:%d:%03d", state.bar + 1, state.beat + 1, state.tick),
             style = MaterialTheme.typography.labelSmall,
             color = MachineColors.Ink2,
             fontFamily = FontFamily.Monospace,
         )
 
-        Box(Modifier.weight(1f))
+        Box(modifier.weight(1f))
 
         Text(
             text = if (state.isEngineRunning) "Night Bus" else "untitled",
